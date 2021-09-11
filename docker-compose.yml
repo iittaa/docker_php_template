@@ -1,0 +1,41 @@
+# docker-composeで使用するversionを指定。
+version: "3"
+services: 
+  nginx:
+    image: nginx:latest
+    # ポート指定（ホスト:コンテナ）
+    ports: 
+      - 8080:80
+    # パスをボリュームとしてマウントする（ホスト:コンテナ）
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./www/html:/var/www/html
+    # 依存関係 php起動後起動
+    depends_on: 
+      - php
+
+  php:
+    # Dockerfileのある位置を指定する。
+    build: ./php
+    volumes: 
+      - ./www/html:/var/www/html
+    # 依存関係 db起動後起動
+    depends_on: 
+      - db
+
+  db:
+    image: mysql:5.7
+    ports: 
+      - 13306:3306
+    volumes: 
+      - ./mysql/data:/var/lib/mysql
+    # 環境変数を追加する
+    environment: 
+      MYSQL_ROOT_PASSWORD: password
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    ports: 
+      - 8888:80
+    depends_on: 
+      - db
